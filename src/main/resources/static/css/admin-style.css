@@ -1,0 +1,151 @@
+/* admin-style.css - LK'S GOURMET PREMIUM THEME */
+:root {
+    /* Colores extraídos directamente de tu logo */
+    --lks-navy: #002344;    /* Azul Marino Profundo */
+    --lks-navy-light: #003362;
+    --lks-gold: #d4af37;    /* Dorado Metálico */
+    --lks-gold-dim: #b8860b;
+    --text-light: #f8f9fa;
+    --bg-body: #f4f7f6;
+    --white: #ffffff;
+    --sidebar-width: 280px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-body);
+    color: #333;
+}
+
+.admin-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* --- SIDEBAR ESTILO VUE.JS --- */
+.sidebar {
+    width: var(--sidebar-width);
+    background-color: var(--lks-navy);
+    color: var(--text-light);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    box-shadow: 4px 0 15px rgba(0,0,0,0.3);
+    z-index: 1000;
+}
+
+.sidebar-header {
+    padding: 40px 20px;
+    text-align: center;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.admin-logo {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 2px solid var(--lks-gold);
+    margin-bottom: 15px;
+    object-fit: cover;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+}
+
+.brand-name {
+    color: var(--lks-gold);
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+/* --- NAVEGACIÓN --- */
+.sidebar-nav {
+    flex-grow: 1;
+    padding-top: 20px;
+}
+
+.sidebar-nav ul { list-style: none; }
+
+.sidebar-nav li {
+    padding: 15px 30px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: rgba(255, 255, 255, 0.7);
+    border-left: 5px solid transparent;
+}
+
+.sidebar-nav li i {
+    width: 25px;
+    margin-right: 15px;
+    font-size: 1.1rem;
+    color: var(--lks-gold); /* Los iconos siempre dorados */
+}
+
+.sidebar-nav li:hover {
+    background-color: var(--lks-navy-light);
+    color: var(--white);
+}
+
+.sidebar-nav li.active {
+    background-color: rgba(212, 175, 55, 0.1);
+    color: var(--lks-gold);
+    border-left: 5px solid var(--lks-gold);
+    font-weight: 600;
+}
+
+/* --- FOOTER DEL SIDEBAR --- */
+.sidebar-footer {
+    padding: 20px;
+    background: rgba(0,0,0,0.2);
+    border-top: 1px solid rgba(212, 175, 55, 0.1);
+}
+
+.user-info { display: flex; align-items: center; gap: 12px; }
+.user-info img { width: 45px; height: 45px; border-radius: 10px; border: 1px solid var(--lks-gold); }
+.user-name { font-size: 0.9rem; font-weight: 600; margin: 0; color: var(--white); }
+.user-role { font-size: 0.75rem; color: var(--lks-gold); margin: 0; }
+
+/* --- CONTENIDO PRINCIPAL --- */
+.main-content {
+    margin-left: var(--sidebar-width);
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.top-header {
+    background: var(--white);
+    padding: 20px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+}
+
+.top-header h2 {
+    font-family: 'Playfair Display', serif;
+    color: var(--lks-navy);
+    font-weight: 700;
+}
+
+.content-body {
+    padding: 30px;
+}
+
+/* --- TARJETAS (CARDS) --- */
+.card-custom {
+    background: var(--white);
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    padding: 25px;
+    transition: transform 0.3s;
+}
+
+.card-custom:hover {
+    transform: translateY(-5px);
+}

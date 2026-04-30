@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo | LK's Gourmet</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg sticky-top shadow-sm bg-white">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="/">
+            <img th:src="@{/img/logo.jpg}" alt="Logo" width="50" class="me-2 rounded-circle border border-warning shadow-sm">
+            <span class="brand-text">LK'S GOURMET</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item"><a class="nav-link" href="/">Inicio</a></li>
+                <li class="nav-item"><a class="nav-link active fw-bold text-warning" href="/catalogo">Catálogo</a></li>
+                <li class="nav-item">
+                    <a class="nav-link position-relative" href="/carrito">
+                        <i class="fas fa-shopping-cart"></i> Carrito
+                        <span id="cart-count" class="badge bg-danger rounded-pill">0</span>
+                    </a>
+                </li>
+                <li class="nav-item ms-lg-3">
+                    <a class="btn btn-login rounded-pill" th:href="@{/login}">Iniciar Sesión</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<section class="py-5" id="catalogo">
+    <div class="container">
+        <div class="text-center mb-5 mt-4">
+            <h2 class="display-4 fw-bold">Nuestro Menú</h2>
+            <p class="text-muted fs-5">Descubre la tradición y el sabor en cada plato</p>
+            <div class="divider-gold mx-auto mb-4"></div>
+            <!-- Botones de navegación de categorías dinámicos -->
+            <div id="categorias-nav" class="d-flex justify-content-center flex-wrap gap-2 mb-5">
+                <button class="btn btn-warning rounded-pill active">Cargando categorías...</button>
+            </div>
+        </div>
+        
+        <!-- Contenedor donde irán las secciones por categoría -->
+        <div id="catalogo-container">
+            <div class="text-center py-5">
+                <i class="fas fa-spinner fa-spin fa-3x text-warning mb-3"></i>
+                <p>Preparando los mejores platillos para ti...</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="footer-dark py-4 mt-auto text-center">
+    <div class="container">
+        <img th:src="@{/img/logo.jpg}" alt="Logo" width="60" class="mb-3 rounded-circle border border-warning shadow">
+        <p class="mb-0">&copy; 2026 LK's Gourmet - Excelencia Lambayecana</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

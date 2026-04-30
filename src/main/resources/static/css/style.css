@@ -1,0 +1,111 @@
+/* Variables de Identidad */
+:root {
+    --gold: #d4af37;
+    --dark-blue: #002344;
+    --soft-white: #f8f9fa;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--soft-white);
+    color: var(--dark-blue);
+}
+
+/* Header & Navegación */
+.navbar {
+    background-color: #ffffff !important;
+    border-bottom: 3px solid var(--gold);
+}
+
+.brand-text {
+    font-weight: 700;
+    color: var(--dark-blue);
+    letter-spacing: 1.5px;
+}
+
+.nav-link {
+    color: var(--dark-blue) !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    transition: 0.3s ease;
+}
+
+.nav-link:hover {
+    color: var(--gold) !important;
+}
+
+.btn-login {
+    border: 2px solid var(--dark-blue);
+    color: var(--dark-blue);
+    font-weight: 600;
+}
+
+.btn-login:hover {
+    background-color: var(--dark-blue);
+    color: white;
+}
+
+/* Carruseles */
+.main-carousel .carousel-item {
+    height: 550px;
+    background-size: cover;
+    background-position: center;
+}
+
+#item-promo-1 { background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1350&q=80'); }
+#item-promo-2 { background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1350&q=80'); }
+
+.carousel-caption {
+    background: rgba(0, 35, 68, 0.85);
+    padding: 2.5rem;
+    border-radius: 15px;
+    border-left: 8px solid var(--gold);
+    max-width: 600px;
+    margin-bottom: 50px;
+}
+
+/* Elementos de Diseño */
+.divider-gold {
+    width: 100px;
+    height: 4px;
+    background: var(--gold);
+    margin: 15px auto;
+}
+
+.top-plate-card {
+    border: none;
+    border-radius: 20px;
+    transition: all 0.4s ease;
+    cursor: pointer;
+}
+
+.top-plate-card:hover {
+    transform: translateY(-15px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+}
+
+.category-item {
+    min-width: 160px;
+    padding: 25px;
+    background: white;
+    border-radius: 20px;
+    margin: 10px;
+    transition: 0.3s;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.category-item:hover {
+    background: var(--dark-blue);
+    color: white;
+}
+
+.category-item i {
+    font-size: 2.5rem;
+    color: var(--gold);
+    margin-bottom: 15px;
+}
+
+.footer-dark {
+    background-color: #111;
+    color: white;
+}

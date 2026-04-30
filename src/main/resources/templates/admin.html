@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin | LK's Gourmet</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/admin-style.css}">
+</head>
+<body>
+
+<div class="admin-wrapper">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <img th:src="@{/img/logo.jpg}" alt="Logo" class="admin-logo">
+            <h5 class="brand-name">LK'S GOURMET</h5>
+        </div>
+
+        <nav class="sidebar-nav">
+            <ul>
+                <li th:each="op : ${opciones}"
+                    th:attr="data-module=${op.ruta}"
+                    th:class="${op.nombre == 'Dashboard'} ? 'active' : ''">
+                    <i th:class="'fas fa-' + ${op.icono}"></i>
+                    <span th:text="${op.nombre}">Nombre Módulo</span>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <img th:src="'https://ui-avatars.com/api/?name=' + ${usuarioNombre} + '&background=d4af37&color=fff'" alt="Avatar">
+                <div class="user-text">
+                    <p class="user-name" th:text="${usuarioNombre}">Nombre Usuario</p>
+                    <p class="user-role" th:text="${usuarioPerfil}">Rol</p>
+                </div>
+            </div>
+            <a th:href="@{/logout}" class="btn-logout"><i class="fas fa-sign-out-alt"></i></a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <h2 id="module-title">Dashboard Informativo</h2>
+            <div class="top-actions">
+                <span class="date-now" th:text="${#dates.format(#dates.createNow(), 'dd MMMM, yyyy')}">Fecha</span>
+                <button class="btn-notify"><i class="fas fa-bell"></i></button>
+            </div>
+        </header>
+
+        <section id="dynamic-content" class="content-body">
+            <div class="loader">Seleccione un módulo para comenzar...</div>
+        </section>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:src="@{/js/admin-main.js}"></script>
+</body>
+</html>

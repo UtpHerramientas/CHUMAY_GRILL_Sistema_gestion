@@ -1,0 +1,132 @@
+:root {
+    --navy-dark: #000c17;
+    --navy-box: #001529;
+    --gold: #d4af37;
+    --gold-light: #f1c40f;
+    --white: #ffffff;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--navy-dark);
+    /* Opcional: Un fondo sutil con patrón o gradiente */
+    background: radial-gradient(circle at top right, #001f3f, #000c17);
+    font-family: 'Poppins', sans-serif;
+}
+
+.login-box {
+    width: 100%;
+    max-width: 400px;
+    padding: 40px;
+    background: var(--navy-box);
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    text-align: center;
+}
+
+.login-logo {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: 3px solid var(--gold);
+    margin-bottom: 20px;
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+}
+
+.login-header h1 {
+    color: var(--white);
+    font-size: 2rem;
+    margin-bottom: 5px;
+    font-family: 'Playfair Display', serif;
+}
+
+.login-header p {
+    color: var(--gold);
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    margin-bottom: 30px;
+}
+
+/* Campos de entrada */
+.input-group-custom {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.input-group-custom i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gold);
+}
+
+.input-group-custom input {
+    width: 100%;
+    padding: 12px 15px 12px 45px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: white;
+    outline: none;
+    transition: 0.3s;
+}
+
+.input-group-custom input:focus {
+    border-color: var(--gold);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Opciones y Link */
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    font-size: 0.85rem;
+    color: #a0aec0;
+}
+
+.forgot-link {
+    color: var(--gold);
+    text-decoration: none;
+}
+
+.forgot-link:hover {
+    text-underline-offset: 4px;
+    text-decoration: underline;
+}
+
+/* Botón Dorado */
+.btn-login {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, var(--gold), #b8860b);
+    border: none;
+    border-radius: 10px;
+    color: var(--navy-dark);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+}
+
+.login-footer {
+    margin-top: 30px;
+    font-size: 0.75rem;
+    color: #4a5568;
+}
