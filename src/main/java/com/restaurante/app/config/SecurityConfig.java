@@ -2,6 +2,7 @@ package com.restaurante.app.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -26,6 +27,7 @@ public class SecurityConfig {
                         .requestMatchers("/", "/catalogo", "/carrito", "/login",
                                          "/api/productos/catalogo", "/api/productos/top",
                                          "/api/categorias/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/pedidos").permitAll()
 
                         // 3. Rutas protegidas por Rol
                         .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMINISTRADOR")

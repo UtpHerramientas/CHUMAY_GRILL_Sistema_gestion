@@ -6,7 +6,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "pedido_detalles")
+@Table(name = "detalle_pedido")
 @Data
 public class DetallePedido {
     @Id
@@ -14,16 +14,27 @@ public class DetallePedido {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "id_pedido")
+    @JoinColumn(name = "id_pedido", nullable = false)
     @JsonIgnoreProperties("detalles")
     private Pedido pedido;
 
     @ManyToOne
-    @JoinColumn(name = "id_producto")
+    @JoinColumn(name = "id_producto", nullable = false)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Producto producto;
 
+    @Column(name = "nombre_producto", nullable = false)
+    private String nombreProducto;
+
+    @Column(name = "precio_unitario", nullable = false)
+    private BigDecimal precioUnitario;
+
+    @Column(nullable = false)
     private Integer cantidad;
-    private BigDecimal precio; // Guardamos el precio del momento de la venta
-    private String notas; // Ej: "Sin cebolla"
+
+    @Column(nullable = false)
+    private BigDecimal subtotal;
+
+    @Column(name = "observacion")
+    private String observacion;
 }

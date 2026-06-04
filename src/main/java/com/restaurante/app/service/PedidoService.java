@@ -51,10 +51,13 @@ public class PedidoService {
                 Producto producto = productoRepository.findById(detalle.getProducto().getId())
                         .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
 
-                detalle.setPrecio(producto.getPrecio());
+                detalle.setNombreProducto(producto.getNombre());
+                detalle.setPrecioUnitario(producto.getPrecio());
                 detalle.setPedido(pedido);
 
                 BigDecimal subtotalItem = producto.getPrecio().multiply(new BigDecimal(detalle.getCantidad()));
+                detalle.setSubtotal(subtotalItem);
+                
                 total = total.add(subtotalItem);
             }
         }

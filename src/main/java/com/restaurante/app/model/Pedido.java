@@ -57,6 +57,9 @@ public class Pedido {
     @Column(name = "costo_envio")
     private BigDecimal costoEnvio;
 
+    @Column(name = "numero_pedido", nullable = false, length = 20)
+    private String numeroPedido;
+
     @Enumerated(EnumType.STRING)
     private EstadoPedido estado;
 
@@ -71,6 +74,9 @@ public class Pedido {
     @PrePersist
     protected void onCreate() {
         fechaPedido = LocalDateTime.now();
+        if (numeroPedido == null) {
+            numeroPedido = "PED-" + (System.currentTimeMillis() % 10000000000L); // 10 digits to be safe and fit under 20 chars
+        }
         if (estado == null) estado = EstadoPedido.PENDIENTE;
         if (total == null) total = BigDecimal.ZERO;
         if (subtotal == null) subtotal = BigDecimal.ZERO;

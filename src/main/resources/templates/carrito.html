@@ -166,7 +166,7 @@
                         Costo de delivery según zona. Puedes coordinarlo por WhatsApp.
                     </p>
                     <button class="btn-whatsapp" onclick="confirmarPedidoSistema()">
-                        <i class="fab fa-whatsapp fa-lg"></i> Confirmar Pedido
+                        <i class="fas fa-check-circle fa-lg"></i> Confirmar Pedido
                     </button>
                     <a href="/catalogo" class="btn btn-outline-secondary btn-seguir text-decoration-none d-block text-center">
                         <i class="fas fa-arrow-left me-1"></i>Seguir comprando
@@ -175,6 +175,23 @@
                         <i class="fas fa-trash me-1"></i>Vaciar carrito
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+
+<!-- Modal de Pedido Procesado -->
+<div class="modal fade" id="pedidoProcesadoModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="pedidoProcesadoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <div class="modal-body text-center p-5">
+                <div class="mb-4">
+                    <i class="fas fa-check-circle text-success" style="font-size: 5rem; animation: pulse 1.5s infinite;"></i>
+                </div>
+                <h3 class="fw-bold mb-3" style="color: #002344; font-family: 'Playfair Display', serif;">¡Pedido Procesado!</h3>
+                <p class="text-muted mb-4 fs-6">Su pedido ha sido registrado correctamente en nuestro sistema. El restaurante se contactará con usted a la brevedad.</p>
+                <button type="button" class="btn btn-warning btn-lg rounded-pill w-100 fw-bold text-white shadow-sm" onclick="window.location.href='/catalogo'">Aceptar</button>
             </div>
         </div>
     </div>
@@ -306,28 +323,12 @@
             if (res.ok) {
                 const pedidoGuardado = await res.json();
                 
-                // Opcional: También enviamos por WhatsApp para coordinar
-                let mensaje = `🍽️ *PEDIDO REGISTRADO #${pedidoGuardado.id} - Chumay Chifa Parrillas*\n\n`;
-                mensaje += `👤 *Cliente:* ${nombre}\n`;
-                mensaje += `📱 *Teléfono:* ${telefono}\n`;
-                mensaje += `📋 *Tipo:* ${tipo}\n`;
-                if (tipo === 'DELIVERY' && direccion) mensaje += `📍 *Dirección:* ${direccion}\n`;
-                mensaje += `\n🛒 *Detalle del pedido:*\n`;
-                carrito.forEach(item => {
-                    mensaje += `  • ${item.nombre} × ${item.cantidad} = S/ ${(item.precio * item.cantidad).toFixed(2)}\n`;
-                });
-                mensaje += `\n💰 *TOTAL: S/ ${calcularTotal().toFixed(2)}*\n`;
-                if (obs) mensaje += `\n📝 *Observaciones:* ${obs}`;
-                
                 // Vaciar carrito local
                 vaciarCarrito();
 
-                // SweetAlert2 o alert clásico si no está cargado
-                alert(`¡Pedido #${pedidoGuardado.id} enviado al sistema correctamente! Redirigiendo para coordinar por WhatsApp...`);
-                
-                const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`;
-                window.open(url, '_blank');
-                window.location.href = '/catalogo';
+                // Mostrar el modal de éxito en vez de redirigir a WhatsApp
+                const myModal = new bootstrap.Modal(document.getElementById('pedidoProcesadoModal'));
+                myModal.show();
             } else {
                 throw new Error("Error en servidor");
             }

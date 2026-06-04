@@ -38,8 +38,14 @@ document.addEventListener('DOMContentLoaded', () => {
 let categoriasData = [];
 let productosData = [];
 let modalInstance = null;
+let autoRefreshInterval = null;
 
 async function loadModule(module) {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = null;
+    }
+
     const contentBody = document.getElementById('dynamic-content');
     contentBody.innerHTML = '<div class="text-center mt-5"><i class="fas fa-spinner fa-spin fa-3x text-primary"></i></div>';
 
@@ -187,9 +193,11 @@ async function loadModule(module) {
     } else if (module === '/admin/pedidos') {
         renderPedidosView(contentBody);
         fetchPedidosAdmin();
+        autoRefreshInterval = setInterval(fetchPedidosAdmin, 5000);
     } else if (module === '/admin/ventas') {
         renderVentasView(contentBody);
         fetchVentasAdmin();
+        autoRefreshInterval = setInterval(fetchVentasAdmin, 5000);
     } else if (module === '/admin/usuarios') {
         renderUsuariosView(contentBody);
         fetchUsuariosAdmin();
@@ -742,18 +750,19 @@ function renderPedidosView(container) {
 async function fetchPedidosAdmin() {
     try {
         const res = await fetch('/api/pedidos');
+        if (!res.ok) throw new Error('No autorizado o error del servidor');
         pedidosData = await res.json();
         
-        // Filtrar estados y renderizar tarjetas
-        const pendientes = pedidosData.filter(p => p.estado === 'PENDIENTE');
-        const preparando = pedidosData.filter(p => p.estado === 'EN_PREPARACION' || p.estado === 'PREPARANDO');
-        const listos = pedidosData.filter(p => p.estado === 'LISTO');
+        // Filtrar estados y renderizar tarjetas (coinciden con el CHECK de la BD)
+        const pendientes = pedidosData.filter(p => p.estado === 'PENDIENTE' || p.estado === 'TOMADO');
+        const preparando = pedidosData.filter(p => p.estado === 'PREPARANDO');
+        const listos = pedidosData.filter(p => p.estado === 'LISTO' || p.estado === 'DESPACHADO');
         
         document.getElementById('badge-pendiente').innerText = pendientes.length;
         document.getElementById('badge-preparando').innerText = preparando.length;
         document.getElementById('badge-listo').innerText = listos.length;
         
-        renderColumnaPedidos('pedidos-pendiente', pendientes, 'warning', 'Iniciar Cocina', 'EN_PREPARACION');
+        renderColumnaPedidos('pedidos-pendiente', pendientes, 'warning', 'Iniciar Cocina', 'PREPARANDO');
         renderColumnaPedidos('pedidos-preparando', preparando, 'primary', 'Marcar Listo', 'LISTO');
         renderColumnaPedidos('pedidos-listo', listos, 'success', 'Marcar Entregado (Caja)', 'ENTREGADO');
         
@@ -773,7 +782,10 @@ function renderColumnaPedidos(containerId, lista, color, btnTexto, proximoEstado
     
     col.innerHTML = lista.map(p => {
         const localInfo = p.mesa ? `Mesa: ${p.mesa.numero} (${p.mesa.ubicacion})` : `Cliente: ${p.nombreCliente || 'Para Llevar'}`;
-        const itemsResumen = p.detalles ? p.detalles.map(d => `${d.cantidad}x ${d.producto ? d.producto.nombre : 'Producto'}`).join(', ') : 'Ver detalles...';
+        const itemsResumen = p.detalles ? p.detalles.map(d => {
+            const nombre = d.nombreProducto || (d.producto ? d.producto.nombre : 'Producto');
+            return `${d.cantidad}x ${nombre}`;
+        }).join(', ') : 'Ver detalles...';
         
         return `
             <div class="card border-0 shadow-sm rounded-3 mb-3 hover-shadow transition">
@@ -847,9 +859,14 @@ async function cambiarEstadoPedido(id, nuevoEstado) {
                 showConfirmButton: false
             });
             fetchPedidosAdmin();
+        } else {
+            const errorText = await res.text();
+            console.error('Error al cambiar estado:', res.status, errorText);
+            Swal.fire('Error', `No se pudo actualizar el estado del pedido (${res.status}). Intenta de nuevo.`, 'error');
         }
     } catch(e) {
-        Swal.fire('Error', 'No se pudo actualizar el estado del pedido', 'error');
+        Swal.fire('Error', 'No se pudo actualizar el estado del pedido. Verifica la conexión.', 'error');
+        console.error(e);
     }
 }
 
@@ -909,10 +926,11 @@ function renderVentasView(container) {
                                         <th class="ps-4">Venta</th>
                                         <th>Método</th>
                                         <th>Total</th>
+                                        <th class="text-center" style="width: 80px;">Boleta</th>
                                     </tr>
                                 </thead>
                                 <tbody id="ventas-tbody">
-                                    <tr><td colspan="3" class="text-center py-4">Cargando...</td></tr>
+                                    <tr><td colspan="4" class="text-center py-4">Cargando...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -993,7 +1011,7 @@ async function fetchVentasAdmin() {
         // Traer pedidos listos para cobrar
         const resPed = await fetch('/api/pedidos');
         const pedidos = await resPed.json();
-        const pendientesCobro = pedidos.filter(p => p.estado === 'LISTO' || p.estado === 'PENDIENTE' || p.estado === 'EN_PREPARACION' || p.estado === 'PREPARANDO');
+        const pendientesCobro = pedidos.filter(p => p.estado === 'LISTO' || p.estado === 'PENDIENTE' || p.estado === 'PREPARANDO' || p.estado === 'TOMADO' || p.estado === 'DESPACHADO');
         
         const tbodyPed = document.getElementById('pedidos-por-cobrar-tbody');
         if (pendientesCobro.length === 0) {
@@ -1022,7 +1040,7 @@ async function fetchVentasAdmin() {
         
         const tbodyVent = document.getElementById('ventas-tbody');
         if (ventasData.length === 0) {
-            tbodyVent.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-4">No se han registrado ventas hoy.</td></tr>`;
+            tbodyVent.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4">No se han registrado ventas hoy.</td></tr>`;
         } else {
             tbodyVent.innerHTML = ventasData.map(v => {
                 return `
@@ -1033,6 +1051,11 @@ async function fetchVentasAdmin() {
                         </td>
                         <td><span class="badge bg-light text-dark border">${v.metodoPago}</span></td>
                         <td class="fw-bold text-success">S/ ${parseFloat(v.total).toFixed(2)}</td>
+                        <td class="text-center">
+                            <a href="/api/ventas/${v.id}/pdf" target="_blank" class="btn btn-sm btn-outline-danger" title="Descargar Boleta PDF">
+                                <i class="fas fa-file-pdf"></i>
+                            </a>
+                        </td>
                     </tr>
                 `;
             }).join('');
@@ -1114,13 +1137,20 @@ async function confirmarCobro() {
         });
         
         if (res.ok) {
+            const ventaGuardada = await res.json();
             modalInstance.hide();
             Swal.fire({
                 icon: 'success',
                 title: 'Venta Registrada',
                 text: 'El pago ha sido registrado correctamente y la mesa liberada.',
-                timer: 2000,
-                showConfirmButton: false
+                showCancelButton: true,
+                confirmButtonText: '<i class="fas fa-file-pdf me-2"></i>Descargar Boleta',
+                cancelButtonText: 'Cerrar',
+                confirmButtonColor: '#198754'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.open(`/api/ventas/${ventaGuardada.id}/pdf`, '_blank');
+                }
             });
             fetchVentasAdmin();
         } else {

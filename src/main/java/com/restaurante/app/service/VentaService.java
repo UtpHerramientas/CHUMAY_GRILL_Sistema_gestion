@@ -61,4 +61,9 @@ public class VentaService {
     public List<Venta> obtenerVentasRecientes() {
         return ventaRepository.findAllOrderByFechaDesc();
     }
+
+    public Venta obtenerVentaPorId(Long id) {
+        return ventaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
+    }
 }
