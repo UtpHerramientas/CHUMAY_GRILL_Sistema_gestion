@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catálogo | LK's Gourmet</title>
+    <title>Catálogo | Chumay Chifa Parrillas</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/carrito.css}">
 </head>
 <body class="bg-light">
 
@@ -17,7 +18,7 @@
     <div class="container">
         <a class="navbar-brand d-flex align-items-center" href="/">
             <img th:src="@{/img/logo.jpg}" alt="Logo" width="50" class="me-2 rounded-circle border border-warning shadow-sm">
-            <span class="brand-text">LK'S GOURMET</span>
+            <span class="brand-text">CHUMAY CHIFA PARRILLAS</span>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
@@ -27,9 +28,9 @@
                 <li class="nav-item"><a class="nav-link" href="/">Inicio</a></li>
                 <li class="nav-item"><a class="nav-link active fw-bold text-warning" href="/catalogo">Catálogo</a></li>
                 <li class="nav-item">
-                    <a class="nav-link position-relative" href="/carrito">
+                    <a class="nav-link position-relative" href="/carrito" id="btn-nav-carrito">
                         <i class="fas fa-shopping-cart"></i> Carrito
-                        <span id="cart-count" class="badge bg-danger rounded-pill">0</span>
+                        <span id="cart-count" class="badge bg-danger rounded-pill" style="display:none">0</span>
                     </a>
                 </li>
                 <li class="nav-item ms-lg-3">
@@ -48,7 +49,7 @@
             <div class="divider-gold mx-auto mb-4"></div>
             <!-- Botones de navegación de categorías dinámicos -->
             <div id="categorias-nav" class="d-flex justify-content-center flex-wrap gap-2 mb-5">
-                <button class="btn btn-warning rounded-pill active">Cargando categorías...</button>
+                <button class="btn btn-warning rounded-pill">Cargando categorías...</button>
             </div>
         </div>
         
@@ -65,11 +66,12 @@
 <footer class="footer-dark py-4 mt-auto text-center">
     <div class="container">
         <img th:src="@{/img/logo.jpg}" alt="Logo" width="60" class="mb-3 rounded-circle border border-warning shadow">
-        <p class="mb-0">&copy; 2026 LK's Gourmet - Excelencia Lambayecana</p>
+        <p class="mb-0">&copy; 2026 Chumay Chifa Parrillas - Excelencia Chiclayana</p>
     </div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/carrito.js}"></script>
 <script th:src="@{/js/main.js}"></script>
 </body>
 </html>

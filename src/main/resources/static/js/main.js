@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("LK's Gourmet System Initialized");
+    console.log("Chumay Chifa Parrillas System Initialized");
 
     // Smooth scroll para los enlaces con ancla (como #catalogo)
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -57,7 +57,10 @@ function renderTopPlatos(platos) {
                     <h4 class="card-title fw-bold">${plato.nombre}</h4>
                     <p class="text-muted small italic">${plato.descripcion || 'Sabor auténtico de la región.'}</p>
                     <p class="h5 text-primary fw-bold text-gold mt-3">S/ ${parseFloat(plato.precio).toFixed(2)}</p>
-                    <button class="btn btn-outline-warning btn-sm mt-3 rounded-pill px-4 fw-bold">Agregar al Carrito</button>
+                    <button class="btn btn-warning btn-sm mt-3 rounded-pill px-4 fw-bold text-white shadow-sm"
+                        onclick='agregarAlCarrito(${JSON.stringify({id: plato.id, nombre: plato.nombre, precio: plato.precio, foto: plato.foto})})'>
+                        <i class="fas fa-cart-plus me-1"></i>Agregar al Carrito
+                    </button>
                 </div>
             </div>
         </div>
@@ -135,7 +138,7 @@ function renderCatalogoCompleto(categorias, productos) {
                                 <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden" style="transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
                                     <div class="row g-0 h-100">
                                         <div class="col-5">
-                                            <img src="${p.foto || 'https://via.placeholder.com/150?text=Sin+Foto'}" class="img-fluid h-100 w-100" alt="${p.nombre}" style="object-fit: cover; min-height: 140px;">
+                                            <img src="${p.foto || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=70'}" class="img-fluid h-100 w-100" alt="${p.nombre}" style="object-fit: cover; min-height: 140px;">
                                         </div>
                                         <div class="col-7 bg-white">
                                             <div class="card-body p-3 d-flex flex-column h-100">
@@ -145,7 +148,9 @@ function renderCatalogoCompleto(categorias, productos) {
                                                 </p>
                                                 <div class="d-flex justify-content-between align-items-center mt-auto pt-2">
                                                     <span class="fs-6 fw-bold text-success">S/ ${parseFloat(p.precio).toFixed(2)}</span>
-                                                    <button class="btn btn-sm btn-warning rounded-circle text-white shadow-sm d-flex justify-content-center align-items-center" style="width: 32px; height: 32px;" title="Agregar">
+                                                    <button class="btn btn-sm btn-warning rounded-circle text-white shadow-sm d-flex justify-content-center align-items-center"
+                                                        style="width: 32px; height: 32px;" title="Agregar al carrito"
+                                                        onclick='agregarAlCarrito(${JSON.stringify({id: p.id, nombre: p.nombre, precio: p.precio, foto: p.foto})})'>
                                                         <i class="fas fa-plus"></i>
                                                     </button>
                                                 </div>

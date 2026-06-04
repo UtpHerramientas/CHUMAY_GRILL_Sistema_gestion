@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Carrito | Chumay Chifa Parrillas</title>
+    <meta name="description" content="Revisa tu pedido y confírmalo por WhatsApp con Chumay Chifa Parrillas - Chiclayo">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/carrito.css}">
+    <style>
+        .carrito-page-header {
+            background: linear-gradient(135deg, #002344 0%, #003a6e 100%);
+            padding: 3rem 0 2rem;
+            color: white;
+            border-bottom: 4px solid #d4af37;
+        }
+        .carrito-page-header h1 { font-family: 'Playfair Display', serif; }
+
+        .carrito-tabla { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; }
+        .carrito-tabla th { background: #002344; color: white; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; padding: 1rem 1.25rem; }
+        .carrito-tabla td { padding: 1rem 1.25rem; vertical-align: middle; border-color: #f0f0f0; }
+
+        .item-foto { width: 70px; height: 70px; object-fit: cover; border-radius: 10px; }
+
+        .qty-control { display: flex; align-items: center; gap: 0.5rem; }
+        .qty-btn { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #002344; background: white; color: #002344; font-weight: bold; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .qty-btn:hover { background: #002344; color: white; }
+        .qty-display { min-width: 28px; text-align: center; font-weight: 700; font-size: 1rem; }
+
+        .resumen-card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 1.5rem; position: sticky; top: 100px; }
+        .resumen-card h5 { color: #002344; font-weight: 800; border-bottom: 3px solid #d4af37; padding-bottom: 0.75rem; margin-bottom: 1.25rem; }
+
+        .resumen-linea { display: flex; justify-content: space-between; margin-bottom: 0.6rem; font-size: 0.95rem; }
+        .resumen-total { display: flex; justify-content: space-between; font-size: 1.3rem; font-weight: 800; color: #002344; margin-top: 1rem; padding-top: 1rem; border-top: 2px solid #eee; }
+
+        .btn-whatsapp { background: linear-gradient(135deg, #25D366, #128C7E); color: white; border: none; padding: 0.9rem 1.5rem; border-radius: 12px; font-weight: 700; font-size: 1rem; width: 100%; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 0.6rem; margin-top: 1.25rem; }
+        .btn-whatsapp:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(37,211,102,0.4); color: white; }
+        .btn-seguir { color: #002344; border: 2px solid #002344; padding: 0.7rem 1.5rem; border-radius: 12px; font-weight: 600; width: 100%; margin-top: 0.6rem; transition: all 0.2s; }
+        .btn-seguir:hover { background: #002344; color: white; }
+
+        .carrito-vacio-page { text-align: center; padding: 5rem 2rem; }
+        .carrito-vacio-page i { font-size: 5rem; color: #dee2e6; margin-bottom: 1.5rem; }
+
+        .form-pedido { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 1.5rem; margin-top: 1.5rem; }
+        .form-pedido h5 { color: #002344; font-weight: 700; margin-bottom: 1.25rem; }
+        .form-control, .form-select { border-radius: 10px; border: 2px solid #eee; padding: 0.7rem 1rem; }
+        .form-control:focus, .form-select:focus { border-color: #d4af37; box-shadow: 0 0 0 0.15rem rgba(212,175,55,0.25); }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg sticky-top shadow-sm bg-white">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="/">
+            <img th:src="@{/img/logo.jpg}" alt="Logo" width="50" class="me-2 rounded-circle border border-warning shadow-sm">
+            <span class="brand-text">CHUMAY CHIFA PARRILLAS</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item"><a class="nav-link" href="/">Inicio</a></li>
+                <li class="nav-item"><a class="nav-link" href="/catalogo">Catálogo</a></li>
+                <li class="nav-item">
+                    <a class="nav-link position-relative active fw-bold text-warning" href="/carrito">
+                        <i class="fas fa-shopping-cart"></i> Carrito
+                        <span id="cart-count" class="badge bg-danger rounded-pill" style="display:none">0</span>
+                    </a>
+                </li>
+                <li class="nav-item ms-lg-3">
+                    <a class="btn btn-login rounded-pill" th:href="@{/login}">Iniciar Sesión</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="carrito-page-header">
+    <div class="container">
+        <h1 class="mb-1"><i class="fas fa-shopping-cart me-3 text-warning"></i>Mi Pedido</h1>
+        <p class="mb-0 opacity-75">Revisa los platillos seleccionados y confirma tu pedido</p>
+    </div>
+</div>
+
+<div class="container my-5">
+    <!-- Estado: carrito vacío -->
+    <div id="vista-vacia" class="carrito-vacio-page" style="display:none">
+        <i class="fas fa-shopping-basket d-block"></i>
+        <h3 class="fw-bold text-dark">Tu carrito está vacío</h3>
+        <p class="text-muted mb-4">Explora nuestro catálogo y agrega tus platillos favoritos</p>
+        <a href="/catalogo" class="btn btn-warning btn-lg rounded-pill px-5 fw-bold text-white">
+            <i class="fas fa-utensils me-2"></i>Ver Catálogo
+        </a>
+    </div>
+
+    <!-- Estado: carrito con items -->
+    <div id="vista-carrito" style="display:none">
+        <div class="row g-4">
+
+            <!-- Tabla de productos -->
+            <div class="col-lg-8">
+                <div class="carrito-tabla">
+                    <table class="table table-borderless mb-0">
+                        <thead>
+                            <tr>
+                                <th>Plato</th>
+                                <th class="d-none d-md-table-cell">Precio</th>
+                                <th>Cantidad</th>
+                                <th>Subtotal</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-carrito-body">
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Formulario de datos del cliente -->
+                <div class="form-pedido">
+                    <h5><i class="fas fa-user-circle me-2 text-warning"></i>Datos del Pedido</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
+                            <input type="text" id="cliente-nombre" class="form-control" placeholder="Tu nombre completo">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Teléfono <span class="text-danger">*</span></label>
+                            <input type="tel" id="cliente-telefono" class="form-control" placeholder="Ej: 974859600">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Tipo de servicio</label>
+                            <select id="tipo-servicio" class="form-select">
+                                <option value="RECOJO">🏪 Recojo en local</option>
+                                <option value="DELIVERY">🛵 Delivery a domicilio</option>
+                                <option value="MESA">🍽️ Consumo en mesa</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6" id="campo-direccion" style="display:none">
+                            <label class="form-label fw-semibold">Dirección de entrega</label>
+                            <input type="text" id="cliente-direccion" class="form-control" placeholder="Calle, número, referencia">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Observaciones (opcional)</label>
+                            <textarea id="observaciones" class="form-control" rows="2" placeholder="Ej: sin picante, extra salsa, etc."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resumen del pedido -->
+            <div class="col-lg-4">
+                <div class="resumen-card">
+                    <h5><i class="fas fa-receipt me-2"></i>Resumen del Pedido</h5>
+                    <div id="resumen-items"></div>
+                    <div class="resumen-total">
+                        <span>Total</span>
+                        <span id="total-final">S/ 0.00</span>
+                    </div>
+                    <p class="text-muted small mt-2 mb-0">
+                        <i class="fas fa-info-circle me-1 text-warning"></i>
+                        Costo de delivery según zona. Puedes coordinarlo por WhatsApp.
+                    </p>
+                    <button class="btn-whatsapp" onclick="confirmarPedidoSistema()">
+                        <i class="fab fa-whatsapp fa-lg"></i> Confirmar Pedido
+                    </button>
+                    <a href="/catalogo" class="btn btn-outline-secondary btn-seguir text-decoration-none d-block text-center">
+                        <i class="fas fa-arrow-left me-1"></i>Seguir comprando
+                    </a>
+                    <button class="btn btn-link text-danger small mt-2 p-0 border-0" onclick="vaciarYActualizar()">
+                        <i class="fas fa-trash me-1"></i>Vaciar carrito
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="footer-dark py-4 mt-5 text-center">
+    <div class="container">
+        <img th:src="@{/img/logo.jpg}" alt="Logo" width="60" class="mb-3 rounded-circle border border-warning shadow">
+        <p class="mb-0">&copy; 2026 Chumay Chifa Parrillas - Excelencia Chiclayana</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/carrito.js}"></script>
+<script>
+    const WHATSAPP_NUMBER = '51974859600'; // Número de Chumay
+
+    function renderPaginaCarrito() {
+        const carrito = obtenerCarrito();
+        const vistaVacia = document.getElementById('vista-vacia');
+        const vistaCarrito = document.getElementById('vista-carrito');
+
+        if (carrito.length === 0) {
+            vistaVacia.style.display = 'block';
+            vistaCarrito.style.display = 'none';
+            return;
+        }
+
+        vistaVacia.style.display = 'none';
+        vistaCarrito.style.display = 'block';
+
+        // Tabla
+        const tbody = document.getElementById('tabla-carrito-body');
+        tbody.innerHTML = carrito.map(item => `
+            <tr id="fila-${item.id}">
+                <td>
+                    <div class="d-flex align-items-center gap-3">
+                        <img src="${item.foto || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=80&q=60'}"
+                             alt="${item.nombre}" class="item-foto">
+                        <div>
+                            <p class="mb-0 fw-bold text-dark">${item.nombre}</p>
+                            <small class="text-muted d-md-none">S/ ${parseFloat(item.precio).toFixed(2)}</small>
+                        </div>
+                    </div>
+                </td>
+                <td class="d-none d-md-table-cell fw-semibold text-muted">S/ ${parseFloat(item.precio).toFixed(2)}</td>
+                <td>
+                    <div class="qty-control">
+                        <button class="qty-btn" onclick="cambiarCantidadPagina(${item.id}, -1)">−</button>
+                        <span class="qty-display" id="qty-${item.id}">${item.cantidad}</span>
+                        <button class="qty-btn" onclick="cambiarCantidadPagina(${item.id}, 1)">+</button>
+                    </div>
+                </td>
+                <td class="fw-bold text-success" id="sub-${item.id}">S/ ${(item.precio * item.cantidad).toFixed(2)}</td>
+                <td>
+                    <button class="btn btn-sm text-danger border-0" onclick="eliminarItemPagina(${item.id})" title="Quitar">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+
+        // Resumen lateral
+        const resumen = document.getElementById('resumen-items');
+        resumen.innerHTML = carrito.map(item => `
+            <div class="resumen-linea">
+                <span class="text-muted">${item.nombre} × ${item.cantidad}</span>
+                <span class="fw-semibold">S/ ${(item.precio * item.cantidad).toFixed(2)}</span>
+            </div>
+        `).join('');
+
+        document.getElementById('total-final').textContent = `S/ ${calcularTotal().toFixed(2)}`;
+    }
+
+    function cambiarCantidadPagina(id, delta) {
+        cambiarCantidad(id, delta);
+        renderPaginaCarrito();
+        actualizarContadorNav();
+    }
+
+    function eliminarItemPagina(id) {
+        eliminarDelCarrito(id);
+        renderPaginaCarrito();
+        actualizarContadorNav();
+    }
+
+    function vaciarYActualizar() {
+        if (confirm('¿Seguro que deseas vaciar el carrito?')) {
+            vaciarCarrito();
+            renderPaginaCarrito();
+        }
+    }
+
+    async function confirmarPedidoSistema() {
+        const nombre = document.getElementById('cliente-nombre').value.trim();
+        const telefono = document.getElementById('cliente-telefono').value.trim();
+        if (!nombre || !telefono) {
+            alert('Por favor, ingresa tu nombre y teléfono para continuar.');
+            return;
+        }
+
+        const carrito = obtenerCarrito();
+        const tipo = document.getElementById('tipo-servicio').value;
+        const direccion = document.getElementById('cliente-direccion').value.trim();
+        const obs = document.getElementById('observaciones').value.trim();
+
+        // Estructura del pedido según backend
+        const pedido = {
+            nombreCliente: nombre,
+            telefonoCliente: telefono,
+            direccionEntrega: tipo === 'DELIVERY' ? direccion : '',
+            observaciones: obs,
+            tipo: tipo,
+            estado: 'PENDIENTE',
+            detalles: carrito.map(item => ({
+                producto: { id: item.id },
+                cantidad: item.cantidad,
+                precio: item.precio
+            }))
+        };
+
+        try {
+            const res = await fetch('/api/pedidos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(pedido)
+            });
+
+            if (res.ok) {
+                const pedidoGuardado = await res.json();
+                
+                // Opcional: También enviamos por WhatsApp para coordinar
+                let mensaje = `🍽️ *PEDIDO REGISTRADO #${pedidoGuardado.id} - Chumay Chifa Parrillas*\n\n`;
+                mensaje += `👤 *Cliente:* ${nombre}\n`;
+                mensaje += `📱 *Teléfono:* ${telefono}\n`;
+                mensaje += `📋 *Tipo:* ${tipo}\n`;
+                if (tipo === 'DELIVERY' && direccion) mensaje += `📍 *Dirección:* ${direccion}\n`;
+                mensaje += `\n🛒 *Detalle del pedido:*\n`;
+                carrito.forEach(item => {
+                    mensaje += `  • ${item.nombre} × ${item.cantidad} = S/ ${(item.precio * item.cantidad).toFixed(2)}\n`;
+                });
+                mensaje += `\n💰 *TOTAL: S/ ${calcularTotal().toFixed(2)}*\n`;
+                if (obs) mensaje += `\n📝 *Observaciones:* ${obs}`;
+                
+                // Vaciar carrito local
+                vaciarCarrito();
+
+                // SweetAlert2 o alert clásico si no está cargado
+                alert(`¡Pedido #${pedidoGuardado.id} enviado al sistema correctamente! Redirigiendo para coordinar por WhatsApp...`);
+                
+                const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`;
+                window.open(url, '_blank');
+                window.location.href = '/catalogo';
+            } else {
+                throw new Error("Error en servidor");
+            }
+        } catch (e) {
+            alert('Hubo un problema al registrar tu pedido en el sistema. Inténtalo de nuevo.');
+            console.error(e);
+        }
+    }
+
+    // Mostrar/ocultar campo dirección según tipo
+    document.getElementById('tipo-servicio')?.addEventListener('change', function() {
+        const campo = document.getElementById('campo-direccion');
+        campo.style.display = this.value === 'DELIVERY' ? 'block' : 'none';
+    });
+
+    // Renderizar al cargar
+    document.addEventListener('DOMContentLoaded', () => {
+        actualizarContadorNav();
+        renderPaginaCarrito();
+    });
+</script>
+</body>
+</html>

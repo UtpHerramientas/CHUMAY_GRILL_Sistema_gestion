@@ -17,8 +17,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     
-    // Cargar dashboard por defecto
-    loadModule('/admin/dashboard');
+    // Cargar módulo por defecto basado en la URL actual
+    const currentPath = window.location.pathname;
+    let initialModule = '/admin/dashboard';
+    
+    // Buscar si la ruta coincide con alguna de las opciones del sidebar
+    navItems.forEach(item => {
+        const modulePath = item.getAttribute('data-module');
+        if (modulePath === currentPath) {
+            initialModule = modulePath;
+            navItems.forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            moduleTitle.innerText = item.querySelector('span').innerText;
+        }
+    });
+    
+    loadModule(initialModule);
 });
 
 let categoriasData = [];
@@ -170,6 +184,15 @@ async function loadModule(module) {
     } else if (module === '/admin/categorias') {
         renderCategoriasView(contentBody);
         fetchCategoriasAdmin();
+    } else if (module === '/admin/pedidos') {
+        renderPedidosView(contentBody);
+        fetchPedidosAdmin();
+    } else if (module === '/admin/ventas') {
+        renderVentasView(contentBody);
+        fetchVentasAdmin();
+    } else if (module === '/admin/usuarios') {
+        renderUsuariosView(contentBody);
+        fetchUsuariosAdmin();
     } else {
         contentBody.innerHTML = `<h3>Módulo: ${module}</h3><p>Contenido en desarrollo...</p>`;
     }
@@ -646,4 +669,729 @@ function deleteCategoria(id) {
             }
         }
     });
+}
+
+// ====================
+// MODULO PEDIDOS
+// ====================
+
+let pedidosData = [];
+
+function renderPedidosView(container) {
+    container.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="fw-bold text-dark m-0">Monitoreo de Pedidos</h4>
+            <button class="btn btn-outline-primary" onclick="fetchPedidosAdmin()"><i class="fas fa-sync-alt"></i> Actualizar</button>
+        </div>
+        
+        <div class="row g-4">
+            <!-- PENDIENTE -->
+            <div class="col-12 col-md-4">
+                <div class="card border-0 shadow-sm bg-light rounded-4 h-100">
+                    <div class="card-header bg-warning text-dark border-0 py-3 rounded-top-4 d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-uppercase" style="letter-spacing: 0.5px;"><i class="fas fa-clock me-2"></i>Pendientes</span>
+                        <span id="badge-pendiente" class="badge bg-dark rounded-pill">0</span>
+                    </div>
+                    <div class="card-body p-3" id="pedidos-pendiente" style="min-height: 400px; max-height: 600px; overflow-y: auto;">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- EN_PREPARACION -->
+            <div class="col-12 col-md-4">
+                <div class="card border-0 shadow-sm bg-light rounded-4 h-100">
+                    <div class="card-header bg-primary text-white border-0 py-3 rounded-top-4 d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-uppercase" style="letter-spacing: 0.5px;"><i class="fas fa-fire me-2"></i>En Cocina</span>
+                        <span id="badge-preparando" class="badge bg-white text-primary rounded-pill">0</span>
+                    </div>
+                    <div class="card-body p-3" id="pedidos-preparando" style="min-height: 400px; max-height: 600px; overflow-y: auto;">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- LISTO / DESPACHADO -->
+            <div class="col-12 col-md-4">
+                <div class="card border-0 shadow-sm bg-light rounded-4 h-100">
+                    <div class="card-header bg-success text-white border-0 py-3 rounded-top-4 d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-uppercase" style="letter-spacing: 0.5px;"><i class="fas fa-check-circle me-2"></i>Listos para Entregar</span>
+                        <span id="badge-listo" class="badge bg-white text-success rounded-pill">0</span>
+                    </div>
+                    <div class="card-body p-3" id="pedidos-listo" style="min-height: 400px; max-height: 600px; overflow-y: auto;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Detalles Pedido -->
+        <div class="modal fade" id="pedidoDetallesModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content border-0 rounded-4">
+                    <div class="modal-header bg-dark text-white rounded-top-4 border-0">
+                        <h5 class="modal-title fw-bold" id="pedidoDetallesTitle">Detalle de Pedido</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4" id="pedidoDetallesBody">
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    modalInstance = new bootstrap.Modal(document.getElementById('pedidoDetallesModal'));
+}
+
+async function fetchPedidosAdmin() {
+    try {
+        const res = await fetch('/api/pedidos');
+        pedidosData = await res.json();
+        
+        // Filtrar estados y renderizar tarjetas
+        const pendientes = pedidosData.filter(p => p.estado === 'PENDIENTE');
+        const preparando = pedidosData.filter(p => p.estado === 'EN_PREPARACION' || p.estado === 'PREPARANDO');
+        const listos = pedidosData.filter(p => p.estado === 'LISTO');
+        
+        document.getElementById('badge-pendiente').innerText = pendientes.length;
+        document.getElementById('badge-preparando').innerText = preparando.length;
+        document.getElementById('badge-listo').innerText = listos.length;
+        
+        renderColumnaPedidos('pedidos-pendiente', pendientes, 'warning', 'Iniciar Cocina', 'EN_PREPARACION');
+        renderColumnaPedidos('pedidos-preparando', preparando, 'primary', 'Marcar Listo', 'LISTO');
+        renderColumnaPedidos('pedidos-listo', listos, 'success', 'Marcar Entregado (Caja)', 'ENTREGADO');
+        
+    } catch (e) {
+        console.error("Error al cargar pedidos admin", e);
+    }
+}
+
+function renderColumnaPedidos(containerId, lista, color, btnTexto, proximoEstado) {
+    const col = document.getElementById(containerId);
+    if (!col) return;
+    
+    if (lista.length === 0) {
+        col.innerHTML = `<div class="text-center text-muted py-5"><i class="fas fa-box-open fa-2x mb-2 opacity-50"></i><p class="small">Sin pedidos</p></div>`;
+        return;
+    }
+    
+    col.innerHTML = lista.map(p => {
+        const localInfo = p.mesa ? `Mesa: ${p.mesa.numero} (${p.mesa.ubicacion})` : `Cliente: ${p.nombreCliente || 'Para Llevar'}`;
+        const itemsResumen = p.detalles ? p.detalles.map(d => `${d.cantidad}x ${d.producto ? d.producto.nombre : 'Producto'}`).join(', ') : 'Ver detalles...';
+        
+        return `
+            <div class="card border-0 shadow-sm rounded-3 mb-3 hover-shadow transition">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="fw-bold text-dark mb-0">#${p.id}</h6>
+                        <span class="badge bg-${color}-subtle text-${color} border border-${color} rounded-pill px-2 py-1 small">${p.estado}</span>
+                    </div>
+                    <p class="text-muted small mb-2"><i class="fas fa-utensils me-1"></i>${localInfo}</p>
+                    <p class="text-dark small text-truncate mb-3" title="${itemsResumen}"><strong>Detalle:</strong> ${itemsResumen}</p>
+                    
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-dark flex-fill" onclick="verDetallesPedido(${p.id})"><i class="fas fa-eye me-1"></i>Detalles</button>
+                        ${proximoEstado !== 'ENTREGADO' ? `
+                            <button class="btn btn-sm btn-${color} text-white flex-fill fw-bold" onclick="cambiarEstadoPedido(${p.id}, '${proximoEstado}')">${btnTexto}</button>
+                        ` : `
+                            <span class="text-muted small align-self-center text-center w-100"><i class="fas fa-cash-register me-1"></i>Cobrar en Ventas</span>
+                        `}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+async function verDetallesPedido(id) {
+    const p = pedidosData.find(x => x.id === id);
+    if (!p) return;
+    
+    const body = document.getElementById('pedidoDetallesBody');
+    const mesaInfo = p.mesa ? `<p class="mb-1"><strong>Mesa:</strong> ${p.mesa.numero} - ${p.mesa.ubicacion}</p>` : '';
+    const clienteInfo = p.nombreCliente ? `<p class="mb-1"><strong>Cliente:</strong> ${p.nombreCliente} (Tel: ${p.telefonoCliente || '-'})</p>` : '';
+    const obs = p.observaciones ? `<div class="bg-light p-2 rounded small border-start border-warning border-3 mt-2"><strong>Observaciones:</strong> ${p.observaciones}</div>` : '';
+    
+    let itemsHtml = p.detalles.map(d => `
+        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+            <div>
+                <p class="mb-0 fw-semibold text-dark">${d.producto ? d.producto.nombre : 'Producto'}</p>
+                <small class="text-muted">Precio unitario: S/ ${parseFloat(d.precio || 0).toFixed(2)}</small>
+            </div>
+            <span class="badge bg-secondary rounded-pill px-3">${d.cantidad} und.</span>
+        </div>
+    `).join('');
+    
+    body.innerHTML = `
+        <div class="mb-3">
+            <h6 class="fw-bold mb-2">Información del Pedido</h6>
+            ${mesaInfo}
+            ${clienteInfo}
+            <p class="mb-1"><strong>Total:</strong> <span class="text-success fw-bold">S/ ${parseFloat(p.total).toFixed(2)}</span></p>
+            ${obs}
+        </div>
+        <hr>
+        <h6 class="fw-bold mb-2">Platillos Ordenados</h6>
+        ${itemsHtml}
+    `;
+    
+    modalInstance.show();
+}
+
+async function cambiarEstadoPedido(id, nuevoEstado) {
+    try {
+        const res = await fetch(`/api/pedidos/${id}/estado?estado=${nuevoEstado}`, {
+            method: 'PUT'
+        });
+        if (res.ok) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Pedido Actualizado',
+                timer: 1500,
+                showConfirmButton: false
+            });
+            fetchPedidosAdmin();
+        }
+    } catch(e) {
+        Swal.fire('Error', 'No se pudo actualizar el estado del pedido', 'error');
+    }
+}
+
+// ====================
+// MODULO VENTAS
+// ====================
+
+let ventasData = [];
+
+function renderVentasView(container) {
+    container.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="fw-bold text-dark m-0">Ventas y Facturación</h4>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary" onclick="fetchVentasAdmin()"><i class="fas fa-sync-alt"></i> Actualizar</button>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Pedidos listos para cobrar -->
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-header bg-dark text-white border-0 py-3 rounded-top-4">
+                        <h6 class="fw-bold mb-0 text-uppercase" style="letter-spacing: 0.5px;"><i class="fas fa-clock me-2 text-warning"></i>Pendientes de Cobro</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">Pedido</th>
+                                        <th>Mesa/Cliente</th>
+                                        <th>Total</th>
+                                        <th class="text-center" style="width: 120px;">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pedidos-por-cobrar-tbody">
+                                    <tr><td colspan="4" class="text-center py-4">Cargando...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historial de ventas de hoy -->
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-header bg-success text-white border-0 py-3 rounded-top-4">
+                        <h6 class="fw-bold mb-0 text-uppercase" style="letter-spacing: 0.5px;"><i class="fas fa-file-invoice-dollar me-2"></i>Ventas Registradas</h6>
+                    </div>
+                    <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">Venta</th>
+                                        <th>Método</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ventas-tbody">
+                                    <tr><td colspan="3" class="text-center py-4">Cargando...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Cobro -->
+        <div class="modal fade" id="cobrarModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content border-0 rounded-4">
+                    <div class="modal-header bg-success text-white border-0 rounded-top-4">
+                        <h5 class="modal-title fw-bold"><i class="fas fa-cash-register me-2"></i>Registrar Pago</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <form id="cobroForm">
+                            <input type="hidden" id="cobro-pedido-id">
+                            <div class="text-center mb-4">
+                                <span class="text-muted small d-block">TOTAL A COBRAR</span>
+                                <h1 class="fw-bold text-success display-5 mb-0" id="cobro-total-texto">S/ 0.00</h1>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Método de Pago</label>
+                                <select class="form-select form-select-lg" id="cobro-metodo" onchange="actualizarVueltoCalculo()" required>
+                                    <option value="EFECTIVO">Efectivo</option>
+                                    <option value="YAPE">Yape</option>
+                                    <option value="PLIN">Plin</option>
+                                    <option value="TARJETA">Tarjeta de Crédito/Débito</option>
+                                    <option value="TRANSFERENCIA">Transferencia bancaria</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3" id="wrapper-monto-recibido">
+                                <label class="form-label fw-bold">Monto Recibido</label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text">S/</span>
+                                    <input type="number" step="0.01" class="form-control" id="cobro-recibido" oninput="actualizarVueltoCalculo()">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3" id="wrapper-vuelto" style="display:none;">
+                                <label class="form-label fw-bold text-muted">Vuelto</label>
+                                <h3 class="fw-bold text-dark" id="cobro-vuelto-texto">S/ 0.00</h3>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-6 mb-3">
+                                    <label class="form-label fw-bold">Comprobante</label>
+                                    <select class="form-select" id="cobro-comprobante" required>
+                                        <option value="NINGUNO">Ninguno (Ticket)</option>
+                                        <option value="BOLETA">Boleta de Venta</option>
+                                        <option value="FACTURA">Factura</option>
+                                    </select>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <label class="form-label fw-bold">Serie/Correlativo</label>
+                                    <input type="text" class="form-control" id="cobro-correlativo" placeholder="Ej: B001-0024">
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-success fw-bold px-4" onclick="confirmarCobro()"><i class="fas fa-check me-2"></i>Registrar Venta</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    modalInstance = new bootstrap.Modal(document.getElementById('cobrarModal'));
+}
+
+async function fetchVentasAdmin() {
+    try {
+        // Traer pedidos listos para cobrar
+        const resPed = await fetch('/api/pedidos');
+        const pedidos = await resPed.json();
+        const pendientesCobro = pedidos.filter(p => p.estado === 'LISTO' || p.estado === 'PENDIENTE' || p.estado === 'EN_PREPARACION' || p.estado === 'PREPARANDO');
+        
+        const tbodyPed = document.getElementById('pedidos-por-cobrar-tbody');
+        if (pendientesCobro.length === 0) {
+            tbodyPed.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4"><i class="fas fa-check-double text-success me-2"></i>Todos los pedidos están cobrados</td></tr>`;
+        } else {
+            tbodyPed.innerHTML = pendientesCobro.map(p => {
+                const info = p.mesa ? `Mesa ${p.mesa.numero}` : (p.nombreCliente || 'Para Llevar');
+                return `
+                    <tr>
+                        <td class="ps-4 fw-bold text-dark">#${p.id} <span class="badge bg-secondary-subtle text-secondary small">${p.estado}</span></td>
+                        <td class="text-muted small">${info}</td>
+                        <td class="fw-bold text-success">S/ ${parseFloat(p.total).toFixed(2)}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-success fw-bold" onclick="abrirModalCobro(${p.id}, ${p.total})">
+                                <i class="fas fa-hand-holding-usd me-1"></i> Cobrar
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        // Traer historial de ventas realizadas
+        const resVent = await fetch('/api/ventas');
+        ventasData = await resVent.json();
+        
+        const tbodyVent = document.getElementById('ventas-tbody');
+        if (ventasData.length === 0) {
+            tbodyVent.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-4">No se han registrado ventas hoy.</td></tr>`;
+        } else {
+            tbodyVent.innerHTML = ventasData.map(v => {
+                return `
+                    <tr>
+                        <td class="ps-4">
+                            <span class="fw-bold text-dark">#${v.id}</span>
+                            <small class="text-muted d-block" style="font-size:0.75rem;">Ped. #${v.pedido.id}</small>
+                        </td>
+                        <td><span class="badge bg-light text-dark border">${v.metodoPago}</span></td>
+                        <td class="fw-bold text-success">S/ ${parseFloat(v.total).toFixed(2)}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+    } catch (e) {
+        console.error("Error al traer datos de Ventas/Caja", e);
+    }
+}
+
+let cobroTotalGlobal = 0;
+
+function abrirModalCobro(pedidoId, total) {
+    document.getElementById('cobroForm').reset();
+    document.getElementById('cobro-pedido-id').value = pedidoId;
+    cobroTotalGlobal = parseFloat(total);
+    document.getElementById('cobro-total-texto').innerText = `S/ ${cobroTotalGlobal.toFixed(2)}`;
+    
+    actualizarVueltoCalculo();
+    modalInstance.show();
+}
+
+function actualizarVueltoCalculo() {
+    const metodo = document.getElementById('cobro-metodo').value;
+    const divRecibido = document.getElementById('wrapper-monto-recibido');
+    const divVuelto = document.getElementById('wrapper-vuelto');
+    
+    if (metodo === 'EFECTIVO') {
+        divRecibido.style.display = 'block';
+        divVuelto.style.display = 'block';
+        
+        const recibido = parseFloat(document.getElementById('cobro-recibido').value) || 0;
+        const vuelto = recibido - cobroTotalGlobal;
+        
+        if (vuelto >= 0) {
+            document.getElementById('cobro-vuelto-texto').innerText = `S/ ${vuelto.toFixed(2)}`;
+            document.getElementById('cobro-vuelto-texto').className = "fw-bold text-success";
+        } else {
+            document.getElementById('cobro-vuelto-texto').innerText = `Falta S/ ${Math.abs(vuelto).toFixed(2)}`;
+            document.getElementById('cobro-vuelto-texto').className = "fw-bold text-danger";
+        }
+    } else {
+        divRecibido.style.display = 'none';
+        divVuelto.style.display = 'none';
+    }
+}
+
+async function confirmarCobro() {
+    const form = document.getElementById('cobroForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    const pedidoId = document.getElementById('cobro-pedido-id').value;
+    const metodo = document.getElementById('cobro-metodo').value;
+    const recibido = parseFloat(document.getElementById('cobro-recibido').value) || cobroTotalGlobal;
+    const vuelto = recibido - cobroTotalGlobal;
+    
+    if (metodo === 'EFECTIVO' && recibido < cobroTotalGlobal) {
+        Swal.fire('Monto Insuficiente', 'El monto recibido es menor al total del pedido.', 'warning');
+        return;
+    }
+    
+    const ventaData = {
+        metodoPago: metodo,
+        montoRecibido: recibido,
+        vuelto: vuelto > 0 ? vuelto : 0,
+        comprobante: document.getElementById('cobro-comprobante').value,
+        serie: document.getElementById('cobro-correlativo').value ? document.getElementById('cobro-correlativo').value.split('-')[0] : '',
+        correlativo: document.getElementById('cobro-correlativo').value ? document.getElementById('cobro-correlativo').value.split('-')[1] : ''
+    };
+    
+    try {
+        const res = await fetch(`/api/ventas/cobrar/${pedidoId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(ventaData)
+        });
+        
+        if (res.ok) {
+            modalInstance.hide();
+            Swal.fire({
+                icon: 'success',
+                title: 'Venta Registrada',
+                text: 'El pago ha sido registrado correctamente y la mesa liberada.',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            fetchVentasAdmin();
+        } else {
+            throw new Error('Server error');
+        }
+    } catch (e) {
+        Swal.fire('Error', 'Hubo un problema al registrar el cobro.', 'error');
+    }
+}
+
+// ====================
+// MODULO USUARIOS
+// ====================
+
+let usuariosData = [];
+let perfilesData = [];
+
+function renderUsuariosView(container) {
+    container.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="fw-bold text-dark m-0">Usuarios y Perfiles del Sistema</h4>
+            <button class="btn btn-primary" onclick="openUsuarioModal()">
+                <i class="fas fa-user-plus me-2"></i>Nuevo Usuario
+            </button>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th class="ps-4" style="width:50px;">Avatar</th>
+                                <th>Nombre</th>
+                                <th>Usuario</th>
+                                <th>Correo</th>
+                                <th>Perfil / Rol</th>
+                                <th>Estado</th>
+                                <th class="text-center" style="width:130px;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usuarios-tbody">
+                            <tr><td colspan="7" class="text-center py-4">Cargando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Usuario -->
+        <div class="modal fade" id="usuarioModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content border-0 rounded-4">
+                    <div class="modal-header bg-dark text-white border-0 rounded-top-4">
+                        <h5 class="modal-title fw-bold" id="usuarioModalTitle">Nuevo Usuario</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <form id="usuarioForm">
+                            <input type="hidden" id="usr-id">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Nombre Completo</label>
+                                    <input type="text" class="form-control" id="usr-nombre" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Nombre de Usuario</label>
+                                    <input type="text" class="form-control" id="usr-username" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Correo Electrónico</label>
+                                    <input type="email" class="form-control" id="usr-correo">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Teléfono</label>
+                                    <input type="tel" class="form-control" id="usr-telefono">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Perfil / Rol</label>
+                                    <select class="form-select" id="usr-perfil" required>
+                                        <option value="">Seleccionar...</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Contraseña <small class="text-muted">(dejar vacío para no cambiar)</small></label>
+                                    <input type="password" class="form-control" id="usr-password" placeholder="Nueva contraseña...">
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="usr-estado" checked>
+                                        <label class="form-check-label fw-semibold" for="usr-estado">Usuario Activo</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary fw-bold px-4" onclick="saveUsuario()">
+                            <i class="fas fa-save me-2"></i>Guardar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    modalInstance = new bootstrap.Modal(document.getElementById('usuarioModal'));
+}
+
+async function fetchUsuariosAdmin() {
+    try {
+        // Cargar perfiles primero
+        const resPer = await fetch('/api/usuarios/perfiles');
+        perfilesData = await resPer.json();
+
+        const res = await fetch('/api/usuarios');
+        usuariosData = await res.json();
+
+        const tbody = document.getElementById('usuarios-tbody');
+        if (!tbody) return;
+
+        if (usuariosData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">No hay usuarios registrados.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = usuariosData.map(u => {
+            const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.nombre)}&background=002344&color=d4af37&size=40&bold=true`;
+            const rolNombre = u.perfil ? u.perfil.nombre : '-';
+            const rolBadgeColor = rolNombre === 'ADMINISTRADOR' ? 'danger' : 'primary';
+            return `
+                <tr>
+                    <td class="ps-4">
+                        <img src="${avatar}" alt="${u.nombre}" class="rounded-circle" width="38" height="38">
+                    </td>
+                    <td class="fw-semibold text-dark">${u.nombre}</td>
+                    <td class="text-muted"><code>${u.username}</code></td>
+                    <td class="text-muted small">${u.correo || '-'}</td>
+                    <td><span class="badge bg-${rolBadgeColor} rounded-pill">${rolNombre}</span></td>
+                    <td>
+                        ${u.estado
+                            ? '<span class="badge bg-success">Activo</span>'
+                            : '<span class="badge bg-secondary">Inactivo</span>'}
+                    </td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="openUsuarioModal(${u.id})" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm ${u.estado ? 'btn-outline-danger' : 'btn-outline-success'}" 
+                                onclick="toggleUsuarioEstado(${u.id}, ${u.estado})" 
+                                title="${u.estado ? 'Deshabilitar' : 'Habilitar'}">
+                            <i class="fas fa-${u.estado ? 'user-slash' : 'user-check'}"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+    } catch (e) {
+        console.error('Error cargando usuarios', e);
+        const tbody = document.getElementById('usuarios-tbody');
+        if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Error al cargar usuarios.</td></tr>`;
+    }
+}
+
+function openUsuarioModal(id = null) {
+    document.getElementById('usuarioForm').reset();
+    document.getElementById('usr-id').value = '';
+    document.getElementById('usr-estado').checked = true;
+
+    // Cargar opciones de perfiles en el select
+    const selectPerfil = document.getElementById('usr-perfil');
+    selectPerfil.innerHTML = '<option value="">Seleccionar...</option>' +
+        perfilesData.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('');
+
+    if (id) {
+        document.getElementById('usuarioModalTitle').innerText = 'Editar Usuario';
+        const u = usuariosData.find(x => x.id === id);
+        if (u) {
+            document.getElementById('usr-id').value = u.id;
+            document.getElementById('usr-nombre').value = u.nombre || '';
+            document.getElementById('usr-username').value = u.username || '';
+            document.getElementById('usr-correo').value = u.correo || '';
+            document.getElementById('usr-telefono').value = u.telefono || '';
+            document.getElementById('usr-estado').checked = u.estado;
+            if (u.perfil) document.getElementById('usr-perfil').value = u.perfil.id;
+        }
+    } else {
+        document.getElementById('usuarioModalTitle').innerText = 'Nuevo Usuario';
+    }
+
+    modalInstance.show();
+}
+
+async function saveUsuario() {
+    const form = document.getElementById('usuarioForm');
+    if (!form.checkValidity()) { form.reportValidity(); return; }
+
+    const datos = {
+        id: document.getElementById('usr-id').value || null,
+        nombre: document.getElementById('usr-nombre').value,
+        username: document.getElementById('usr-username').value,
+        correo: document.getElementById('usr-correo').value,
+        telefono: document.getElementById('usr-telefono').value,
+        password: document.getElementById('usr-password').value,
+        estado: document.getElementById('usr-estado').checked,
+        perfilId: document.getElementById('usr-perfil').value || null
+    };
+
+    try {
+        const res = await fetch('/api/usuarios', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datos)
+        });
+
+        if (res.ok) {
+            modalInstance.hide();
+            Swal.fire({
+                icon: 'success',
+                title: datos.id ? '¡Usuario Actualizado!' : '¡Usuario Creado!',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            fetchUsuariosAdmin();
+        } else {
+            throw new Error('Server error');
+        }
+    } catch(e) {
+        Swal.fire('Error', 'Hubo un problema al guardar el usuario.', 'error');
+    }
+}
+
+async function toggleUsuarioEstado(id, estadoActual) {
+    const accion = estadoActual ? 'deshabilitar' : 'habilitar';
+    const result = await Swal.fire({
+        title: `¿${accion.charAt(0).toUpperCase() + accion.slice(1)} usuario?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: `Sí, ${accion}`,
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: estadoActual ? '#d33' : '#198754'
+    });
+
+    if (result.isConfirmed) {
+        // Enviamos la actualización de estado
+        const u = usuariosData.find(x => x.id === id);
+        if (!u) return;
+
+        const datos = {
+            id: u.id,
+            nombre: u.nombre,
+            username: u.username,
+            correo: u.correo || '',
+            telefono: u.telefono || '',
+            estado: !estadoActual,
+            perfilId: u.perfil ? u.perfil.id : null
+        };
+
+        try {
+            const res = await fetch('/api/usuarios', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datos)
+            });
+            if (res.ok) {
+                Swal.fire({ icon: 'success', title: 'Estado actualizado', timer: 1500, showConfirmButton: false });
+                fetchUsuariosAdmin();
+            }
+        } catch(e) {
+            Swal.fire('Error', 'No se pudo cambiar el estado.', 'error');
+        }
+    }
 }

@@ -23,10 +23,14 @@ public class SecurityConfig {
                         .requestMatchers("/css/**", "/js/**", "/img/**", "/vendor/**").permitAll()
 
                         // 2. Rutas públicas de la Web (Catálogo)
-                        .requestMatchers("/", "/login", "/api/productos/catalogo", "/api/productos/top").permitAll()
+                        .requestMatchers("/", "/catalogo", "/carrito", "/login",
+                                         "/api/productos/catalogo", "/api/productos/top",
+                                         "/api/categorias/**").permitAll()
 
                         // 3. Rutas protegidas por Rol
                         .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers("/api/ventas/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers("/api/usuarios/**").hasRole("ADMINISTRADOR")
                         .requestMatchers("/api/pedidos/**").hasAnyRole("ADMINISTRADOR", "MESERO")
 
                         .anyRequest().authenticated()
