@@ -1,4 +1,4 @@
-name: CI - Spring Boot Maven
+name: CI - Spring Boot Maven v2
 
 on:
   push:
