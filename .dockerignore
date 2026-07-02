@@ -1,0 +1,23 @@
+# Ignorar carpetas de compilación e IDEs
+target/
+.git/
+.gitignore
+.gitattributes
+.github/
+.idea/
+.vscode/
+.mvn/
+*.iml
+
+# Ignorar archivos locales temporales o de datos
+uploads/
+.env
+Dockerfile
+docker-compose.yml
+docker/
+
+# Archivos de Maven local
+mvnw
+mvnw.cmd
+pom.xml.tag
+release.properties
