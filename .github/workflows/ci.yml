@@ -33,5 +33,5 @@ jobs:
       - name: Compilar proyecto
         run: ./mvnw clean compile
 
-      - name: Empaquetar proyecto (omitiendo pruebas)
+      - name: Empaquetar proyecto 
         run: ./mvnw clean package -DskipTests
